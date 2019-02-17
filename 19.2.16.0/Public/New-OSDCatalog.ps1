@@ -46,6 +46,7 @@ function New-OSDCatalog {
                     'Category' = $CategoryItem.ProductTitles;
                     'UpdateClassificationTitle' = $CategoryItem.UpdateClassificationTitle;
                     'MsrcSeverity' = $CategoryItem.MsrcSeverity;
+                    'LegacyName' = $CategoryItem.LegacyName;
                     'Title' = $Update.Title;
                     'KBNumber' = $Update.KnowledgeBaseArticles;
                     'FileName' = $Update.Name;

@@ -41,6 +41,7 @@ function Get-OSDWSUSUpdate {
 
     $WsusCategoryUpdates = @()
     $WsusCategoryUpdates = Get-PSWSUSUpdate -Category $WsusCategory | `
+    Where-Object {$_.Title -notlike "*Dynamic Cumulative*"} | `
     Where-Object {$_.IsSuperseded -eq $false} | `
     Where-Object {$_.IsLatestRevision -eq $true} | `
     Where-Object {$_.RequiresLicenseAgreementAcceptance -eq $false} | `
