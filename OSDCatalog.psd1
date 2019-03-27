@@ -7,13 +7,13 @@
 RootModule = 'OSDCatalog.psm1'
 
 # Version number of his module.
-ModuleVersion = '19.2.16.0'
+ModuleVersion = '19.3.4.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
 
 # ID used to uniquely identify this module
-GUID = '9943651f-76d8-4787-aec1-96836c20202d'
+GUID = '492ef572-dfe5-4c93-bed1-ebb76b92195f'
 
 # Author of this module
 Author = 'David Segura'
@@ -46,7 +46,7 @@ PowerShellVersion = '5.0'
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @('PoshWSUS')
+#RequiredModules = @()
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -64,7 +64,7 @@ RequiredModules = @('PoshWSUS')
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'Get-OSDWSUSUpdate','New-OSDCatalog'
+FunctionsToExport = 'New-OSDCatalog','Update-ModuleOSDCatalog'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -90,19 +90,19 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('OSDeploy','OSD','Update')
+        Tags = @('OSDeploy','OSD','Update','Catalogs')
 
         # A URL to the license for this module.
         # LicenseUri = ''
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://www.osdeploy.com/OSDCatalog/home'
+        ProjectUri = 'https://www.osdeploy.com/osdcatalog/home'
 
         # A URL to an icon representing this module.
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'https://www.osdeploy.com/OSDCatalog/releases'
+        ReleaseNotes = 'https://www.osdeploy.com/osdcatalog/releases'
 
     } # End of PSData hashtable
 
@@ -113,5 +113,4 @@ PrivateData = @{
 
 # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
 # DefaultCommandPrefix = ''
-
 }
