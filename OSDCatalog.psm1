@@ -1,14 +1,11 @@
-#===================================================================================================
-#   Import Functions
-#   https://github.com/RamblingCookieMonster/PSStackExchange/blob/master/PSStackExchange/PSStackExchange.psm1
-#===================================================================================================
-$OSDPublicFunctions  = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue )
-$OSDPrivateFunctions = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue )
+$Public  = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue )
+$Private = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue )
 
-foreach ($Import in @($OSDPublicFunctions + $OSDPrivateFunctions)) {
+foreach ($Import in @($Public + $Private)) {
     Try {. $Import.FullName}
     Catch {Write-Error -Message "Failed to import function $($Import.FullName): $_"}
 }
 
-Export-ModuleMember -Function $OSDPublicFunctions.BaseName
-#===================================================================================================
+Export-ModuleMember -Function $Public.BaseName
+
+#https://github.com/RamblingCookieMonster/PSStackExchange/blob/master/PSStackExchange/PSStackExchange.psm1
