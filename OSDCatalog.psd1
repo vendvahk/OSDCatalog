@@ -7,7 +7,7 @@
 RootModule = 'OSDCatalog.psm1'
 
 # Version number of his module.
-ModuleVersion = '19.8.13.0'
+ModuleVersion = '19.8.14.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -90,19 +90,19 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('OSDeploy','OSD','Update','Catalogs')
+        Tags = @('OSDeploy','OSD','Update','Catalogs','OSDBuilder','OSDUpdate')
 
         # A URL to the license for this module.
         # LicenseUri = ''
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://www.osdeploy.com/osdcatalog/home'
+        ProjectUri = 'https://osdcatalog.osdeploy.com/'
 
         # A URL to an icon representing this module.
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'https://www.osdeploy.com/osdcatalog/releases'
+        ReleaseNotes = 'https://osdcatalog.osdeploy.com/module/release'
 
     } # End of PSData hashtable
 

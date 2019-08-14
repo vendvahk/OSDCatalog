@@ -6,7 +6,7 @@ Updates the OSDCatalog PowerShell Module to the latest version
 Updates the OSDCatalog PowerShell Module to the latest version from the PowerShell Gallery
 
 .LINK
-https://www.osdeploy.com/osdcatalog/docs/functions/update-moduleosdcatalog
+https://osdcatalog.osdeploy.com/module/functions/update-moduleosdcatalog
 
 .Example
 Update-ModuleOSDCatalog

@@ -6,7 +6,7 @@ Creates Stand Alone Update Catalogs from WSUS.  Used by OSDBuilder and OSDUpdate
 Creates Stand Alone Update Catalogs from WSUS.  Used by OSDBuilder and OSDUpdate
 
 .LINK
-https://www.osdeploy.com/osdcatalog/docs/functions/new-osdcatalog
+https://osdcatalog.osdeploy.com/module/functions/new-osdcatalog
 
 .PARAMETER WsusServer
 WSUS Server Name
