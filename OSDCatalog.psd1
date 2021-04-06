@@ -7,8 +7,7 @@
 RootModule = 'OSDCatalog.psm1'
 
 # Version number of his module.
-ModuleVersion = '19.8.14.0'
-
+ModuleVersion = '21.4.6.1'
 # Supported PSEditions
 # CompatiblePSEditions = @()
 
@@ -22,7 +21,7 @@ Author = 'David Segura'
 CompanyName = 'osdeploy.com'
 
 # Copyright statement for this module
-Copyright = '(c) 2019 David Segura osdeploy.com. All rights reserved.'
+Copyright = '(c) 2021 David Segura osdeploy.com. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = 'OSDeploy WSUS Catalog Generator'
@@ -96,7 +95,7 @@ PrivateData = @{
         # LicenseUri = ''
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://osdcatalog.osdeploy.com/'
+        ProjectUri = 'https://github.com/OSDeploy/OSDCatalog'
 
         # A URL to an icon representing this module.
         # IconUri = ''

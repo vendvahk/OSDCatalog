@@ -89,7 +89,8 @@ function New-OSDCatalog {
             #'Windows 8.1',
             'Windows 8.1 Dynamic Update',
             'Windows 10',
-            'Windows 10 1903',
+            'Windows 10 LTSB',
+            'Windows 10 1903 and Later',
             'Windows 10 Dynamic Update',
             'Windows 10 Feature On Demand',
             'Windows 10 Language Packs',
@@ -97,7 +98,9 @@ function New-OSDCatalog {
             'Windows Server 2012 R2',
             'Windows Server 2012 R2 Dynamic Update',
             'Windows Server 2016',
-            'Windows Server 2019')]
+            'Windows Server 2019',
+            'Windows Server 1903 and Later',
+            'Windows 10 Feature Update')]
         [string]$OSDeployCatalog
     )
     #===================================================================================================
@@ -135,35 +138,45 @@ function New-OSDCatalog {
     {
         Throw ("Unable to connect to Server: {0} on port {1}" -f $ServerName, $ServerPort)
     }
-    #===================================================================================================
-    #   19.2.28 OSDeploy Catalog
-    #===================================================================================================
     if ($OSDeployCatalog) {
-        if ($OSDeployCatalog -eq 'Office 2010 32-Bit') {
+        #===================================================================================================
+        #   Office Catalogs
+        #===================================================================================================
+        if ($OSDeployCatalog -match 'Office 2010') {
             $UpdateCategory = 'Office 2010'
         }
-        if ($OSDeployCatalog -eq 'Office 2010 64-Bit') {
-            $UpdateCategory = 'Office 2010'
-        }
-        if ($OSDeployCatalog -eq 'Office 2013 32-Bit') {
+        if ($OSDeployCatalog -match 'Office 2013') {
             $UpdateCategory = 'Office 2013'
         }
-        if ($OSDeployCatalog -eq 'Office 2013 64-Bit') {
-            $UpdateCategory = 'Office 2013'
-        }
-        if ($OSDeployCatalog -eq 'Office 2016 32-Bit') {
+        if ($OSDeployCatalog -match 'Office 2016') {
             $UpdateCategory = 'Office 2016'
         }
-        if ($OSDeployCatalog -eq 'Office 2016 64-Bit') {
+        if ($OSDeployCatalog -match 'Office 2016') {
             $UpdateCategory = 'Office 2016'
         }
+        #===================================================================================================
+        #   Windows
+        #===================================================================================================
         if ($OSDeployCatalog -like "*Windows*") {$UpdateCategory = $OSDeployCatalog}
+
         $CatalogName = "$OSDeployCatalog"
         
-        if ($OSDeployCatalog -eq "Windows 10 1903") {
-            $OSDeployCatalog -eq "Windows 10"
-            $CatalogName = "Windows 10 1903"
+        if ($OSDeployCatalog -eq "Windows 10 1903 and Later") {
+            #$OSDeployCatalog = "Windows 10"
+            $CatalogName = "Windows 10 1903 and Later"
             $UpdateCategory = 'Windows 10, version 1903 and later'
+        }
+        if ($OSDeployCatalog -eq 'Windows Server 1903 and Later') {
+            #$OSDeployCatalog = "Windows 10"
+            $CatalogName = 'Windows Server 1903 and Later'
+            $UpdateCategory = 'Windows Server, version 1903 and later'
+        }
+
+        if ($OSDeployCatalog -eq 'Windows 10 Feature Update') {
+            #$OSDeployCatalog = "Windows 10"
+            $CatalogName = 'Windows 10 FeatureUpdate'
+            #$UpdateCategory = 'Windows 10, version 1903 and later'
+            $UpdateCategory = 'Windows Insider Pre-Release'
         }
     }
     #===================================================================================================
@@ -221,9 +234,19 @@ function New-OSDCatalog {
     #===================================================================================================
     $GetUpdates = $Wsus.GetUpdates($UpdateScope)
     #===================================================================================================
-    #   19.3.1 Filter GetUpdates OSDEploy
+    #   19.3.1 Filter GetUpdates OSDeploy
     #===================================================================================================
+    Write-Verbose "OSDeploy Catalog: $OSDeployCatalog" -Verbose
     if ($OSDeployCatalog) {
+        if ($OSDeployCatalog -eq "Windows 10 Feature Update") {
+            $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Enablement*"}
+            #$GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Windows Insider*"}
+            $GetUpdates = $GetUpdates | Where-Object {$_.UpdateClassificationTitle -eq 'Upgrades'}
+        } else {
+            $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Insider Preview*"}
+            $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Windows Insider*"}
+            $GetUpdates = $GetUpdates | Where-Object {$_.UpdateClassificationTitle -ne 'Upgrades'}
+        }
         $GetUpdates = $GetUpdates | Where-Object {$_.IsDeclined -eq $false}
         $GetUpdates = $GetUpdates | Where-Object {$_.IsLatestRevision -eq $true}
         $GetUpdates = $GetUpdates | Where-Object {$_.IsSuperseded -eq $false}
@@ -233,14 +256,12 @@ function New-OSDCatalog {
         $GetUpdates = $GetUpdates | Where-Object {$_.LegacyName -notlike "*farm-deployment*"}
         $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*ARM64*"}
         $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Beta*"}
-        $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Insider Preview*"}
         $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Preview of*"}
+        $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "* Only *"}
         #$GetUpdates = $GetUpdates | Where-Object {$_.UpdateClassificationTitle -ne 'Drivers'}
 
         #Feature Updates
-        $GetUpdates = $GetUpdates | Where-Object {$_.UpdateClassificationTitle -ne 'Upgrades'}
-        #$GetUpdates = $GetUpdates | Where-Object {$_.CreationDate -gt [datetime]'5/5/2019'}
-        #$GetUpdates = $GetUpdates | Where-Object {$_.UpdateClassificationTitle -eq 'Upgrades'}
+        #$GetUpdates = $GetUpdates | Where-Object {$_.CreationDate -gt [datetime]'5/26/2020'}
     }
     if ($OSDeployCatalog -eq 'Office 2010 32-Bit') {
         $GetUpdates = $GetUpdates | Where-Object {$_.Title -like "*32-Bit*"}
@@ -268,8 +289,8 @@ function New-OSDCatalog {
         $GetUpdates = $GetUpdates | Where-Object {$_.Title -like "*64-Bit*"}
         $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*SharePoint*"}
     }
-    if ($OSDeployCatalog -eq 'Windows 7x') {
-        $GetUpdates = $GetUpdates | Where-Object {$_.CreationDate -gt [datetime]'5/1/2012'}
+    if ($OSDeployCatalog -eq 'Windows 7') {
+        $GetUpdates = $GetUpdates | Where-Object {$_.CreationDate -gt [datetime]'7/17/2019'}
     }
     if ($OSDeployCatalog -eq 'Windows 7x') {
         $GetUpdates = $GetUpdates | Where-Object {$_.CreationDate -gt [datetime]'5/1/2012'}
@@ -347,10 +368,13 @@ function New-OSDCatalog {
         $GetUpdates = $GetUpdates | Where-Object {$_.KnowledgeBaseArticles -ne '4033393'}   #Microsoft .NET Framework 4.7.1 for Windows 10 Version 1607 (KB4033393)
         $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Language Packs*"}
     }
-    if ($OSDeployCatalog -eq 'Windows 10 1903') {
+    if ($OSDeployCatalog -eq 'Windows 10 LTSB') {
         $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Language Packs*"}
+        $GetUpdates = $GetUpdates | Where-Object {$_.Title -notmatch 'Server'}
     }
-    if ($OSDeployCatalog -eq 'Windows 10 Dynamic Update') {
+    if ($OSDeployCatalog -eq 'Windows 10 1903 and Later') {
+        $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Language Packs*"}
+        $GetUpdates = $GetUpdates | Where-Object {$_.Title -notmatch 'Server'}
     }
     if ($OSDeployCatalog -eq 'Windows 10 Feature On Demand') {
         $GetUpdates = $GetUpdates | Where-Object {$_.CreationDate -gt [datetime]'1/1/2016'}
@@ -360,12 +384,12 @@ function New-OSDCatalog {
         $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Windows Server 2016*"}
     }
     if ($OSDeployCatalog -eq 'Windows 10 Language Packs') {
-
     }
     if ($OSDeployCatalog -eq 'Windows 10 Language Interface Packs') {
     }
     if ($OSDeployCatalog -eq 'Windows Server 2012 R2') {
         $GetUpdates = $GetUpdates | Where-Object {$_.CreationDate -gt [datetime]'7/7/2014'}
+        $GetUpdates = $GetUpdates | Where-Object {$_.CreationDate -gt [datetime]'1/1/2019'}
         $GetUpdates = $GetUpdates | Where-Object {$_.KnowledgeBaseArticles -ne '2934520'}   #Microsoft .NET Framework 4.5.2
         $GetUpdates = $GetUpdates | Where-Object {$_.KnowledgeBaseArticles -ne '3102467'}   #Microsoft .NET Framework 4.6.1
         $GetUpdates = $GetUpdates | Where-Object {$_.KnowledgeBaseArticles -ne '3186539'}   #Microsoft .NET Framework 4.7
@@ -375,7 +399,16 @@ function New-OSDCatalog {
         $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Language*"}
         $GetUpdates = $GetUpdates | Where-Object {$_.Title -notlike "*Security Only*"}
         $GetUpdates = $GetUpdates | Where-Object {$_.UpdateClassificationTitle -ne 'Feature Packs' -and $_.LegacyName -notlike "*DOTNET45x*"}
-    }  
+    }
+    if ($OSDeployCatalog -eq 'Windows Server 2016') {
+        $GetUpdates = $GetUpdates | Where-Object {$_.Title -match 'Windows Server'}
+    }
+    if ($OSDeployCatalog -eq 'Windows Server 2019') {
+        $GetUpdates = $GetUpdates | Where-Object {$_.Title -match 'Windows Server'}
+    }
+    if ($OSDeployCatalog -eq 'Windows Server 1903 and Later') {
+        $GetUpdates = $GetUpdates | Where-Object {$_.Title -match 'Windows Server'}
+    }
     $GetUpdates = $GetUpdates | Where-Object {$_.KnowledgeBaseArticles -notlike "*3125217*"}
     $GetUpdates = $GetUpdates | Where-Object {$_.KnowledgeBaseArticles -notlike "*3186568*"} # Microsoft .NET Framework 4.7
     $GetUpdates = $GetUpdates | Where-Object {$_.KnowledgeBaseArticles -notlike "*3186607*"} # Microsoft .NET Framework 4.7 Language Packs for Windows 10 Version 1607
@@ -394,12 +427,12 @@ function New-OSDCatalog {
     #===================================================================================================
     #   GridViewGetUpdates
     #===================================================================================================
-    If ($GridViewGetUpdates) {$GetUpdates = $GetUpdates | Sort-Object CreationDate | Out-GridView -PassThru -Title 'Select Updates'}
+    If ($GridViewGetUpdates) {$GetUpdates = $GetUpdates | Sort-Object CreationDate -Descending | Out-GridView -PassThru -Title 'Select Updates'}
     #===================================================================================================
     #   NewExcludedUpdates
     #===================================================================================================
     if ($GridViewExclude) {
-        $NewExcludedUpdates = $GetUpdates | Sort-Object CreationDate | Out-GridView -PassThru -Title 'Select Updates to Exclude'
+        $NewExcludedUpdates = $GetUpdates | Sort-Object CreationDate -Descending | Out-GridView -PassThru -Title 'Select Updates to Exclude'
         $NewExcludedUpdates = $NewExcludedUpdates | Select-Object -Property CreationDate, Title, KnowledgeBaseArticles
         $NewExcludedUpdates | Export-Clixml "$env:TEMP\$((Get-Date).ToString('yyyy-MM-dd-HHmmss')) $UpdateCategory.xml"
         Return
@@ -444,6 +477,7 @@ function New-OSDCatalog {
             elseif ($CatalogName -like "Windows 8.1*") {$UpdateOS = 'Windows 8.1'}
             elseif ($CatalogName -like "Windows 10*") {$UpdateOS = 'Windows 10'}
             elseif ($CatalogName -like "Windows Server 2012 R2*") {$UpdateOS = 'Windows Server 2012 R2'}
+            elseif ($CatalogName -like "Windows Server 1903 and Later*") {$UpdateOS = 'Windows Server'}
             elseif ($CatalogName -like "Windows Server 2016*") {$UpdateOS = 'Windows Server 2016'}
             elseif ($CatalogName -like "Windows Server 2019*") {$UpdateOS = 'Windows Server 2019'}
             if ($UpdateOS -eq 'Windows 7') {$OSDCore = $True}
@@ -462,11 +496,12 @@ function New-OSDCatalog {
             elseif ($Update.FileName -like "*x64*") {$UpdateArch = 'x64'}
             elseif ($Update.Title -like "*x86*") {$UpdateArch = 'x86'}
             elseif ($Update.Title -like "*x64*") {$UpdateArch = 'x64'}
-
             #===================================================================================================
             #   Update Build
             #===================================================================================================
             $UpdateBuild = ''
+            if ($CatalogName -match 'Windows 7') {$UpdateBuild = '7601'}
+            if ($CatalogName -match 'Windows Server 2012 R2') {$UpdateBuild = '9600'}
             if ($Update.Title -like "*1507*") {$UpdateBuild = '1507'}
             if ($Update.Title -like "*1511*") {$UpdateBuild = '1511'}
             if ($Update.Title -like "*1607*") {$UpdateBuild = '1607'}
@@ -475,7 +510,15 @@ function New-OSDCatalog {
             if ($Update.Title -like "*1803*") {$UpdateBuild = '1803'}
             if ($Update.Title -like "*1809*") {$UpdateBuild = '1809'}
             if ($Update.Title -like "*1903*") {$UpdateBuild = '1903'}
-            if ($Update.Title -like "*Windows Server 2019*") {$UpdateBuild = '1809'}
+            if ($Update.Title -like "*1909*") {$UpdateBuild = '1909'}
+            if ($Update.Title -like "*2004*") {$UpdateBuild = '2004'}
+            if ($Update.Title -like "*20H1*") {$UpdateBuild = '2004'}
+            if ($Update.Title -like "*2009*") {$UpdateBuild = '2009'}
+            if ($Update.Title -like "*20H2*") {$UpdateBuild = '2009'}
+            if ($Update.Title -match 'Windows Server 2019') {$UpdateBuild = '1809'}
+            if ($Update.Title -match 'Windows Server 2019' -and $Update.Title -match '1903') {$UpdateBuild = '1903'}
+            if ($Update.Title -match 'Windows Server 2019' -and $Update.Title -match '1909') {$UpdateBuild = '1909'}
+            if ($Update.Title -match 'Version 2004') {$UpdateBuild = '2004'}
 
             if ($Update.KnowledgeBaseArticles -eq '3079343') {$UpdateBuild = '1507'}
             if ($Update.KnowledgeBaseArticles -eq '3125217') {$UpdateBuild = '1507'}
@@ -489,6 +532,10 @@ function New-OSDCatalog {
                 if ($CategoryItem.LegacyName -like "*RS3*") {$UpdateBuild = '1709'}
                 if ($CategoryItem.LegacyName -like "*RS4*") {$UpdateBuild = '1803'}
                 if ($CategoryItem.LegacyName -like "*RS5*") {$UpdateBuild = '1809'}
+                if ($CategoryItem.LegacyName -like "*19h1*") {$UpdateBuild = '1903'}
+                if ($CategoryItem.LegacyName -like "*19h2*") {$UpdateBuild = '1909'}
+                if ($CategoryItem.LegacyName -like "*20h1*") {$UpdateBuild = '2004'}
+                if ($CategoryItem.LegacyName -like "*20h2*") {$UpdateBuild = '2009'}
             }
 
             if ($CategoryItem.LegacyName -like "KB3161102-Win10-RTM-X*") {$UpdateBuild = '1507'}
@@ -496,11 +543,23 @@ function New-OSDCatalog {
             if (!($UpdateBuild)) {
                 if ($CategoryItem.LegacyName -like "*TH1*") {$UpdateBuild = '1507'}
                 if ($CategoryItem.LegacyName -like "*TH2*") {$UpdateBuild = '1511'}
+                if ($UpdateOS -eq 'Windows Server 2016') {$UpdateBuild = '1607'}
+            }
+            if ($CatalogName -eq 'Windows 10') {
+                #If ($UpdateBuild -eq 1507) {Continue}
+                #If ($UpdateBuild -eq 1607) {Continue}
+            }
+            if ($CatalogName -eq 'Windows 10 LTSB') {
+                #If ($UpdateBuild -eq 1809) {Continue}
             }
             #===================================================================================================
             #   Update Group
             #===================================================================================================
             $UpdateGroup = ''
+            if ($UpdateOS -eq 'Windows 10') {$UpdateGroup = 'Optional'}
+            if ($UpdateOS -eq 'Windows 10 1903') {$UpdateGroup = 'Optional'}
+            if ($UpdateOS -eq 'Windows Server 2016') {$UpdateGroup = 'Optional'}
+            if ($UpdateOS -eq 'Windows Server 2019') {$UpdateGroup = 'Optional'}
             if ($CategoryItem.LegacyName -like "*MRT*") {$UpdateGroup = 'MRT'}
             if ($CategoryItem.Description -like "ComponentUpdate*") {$UpdateGroup = 'ComponentDU'}
             if ($CategoryItem.LegacyName -like "*CriticalDU*") {$UpdateGroup = 'ComponentDU Critical'}
@@ -510,10 +569,16 @@ function New-OSDCatalog {
             if ($CategoryItem.LegacyName -like "*ServicingStack*") {$UpdateGroup = 'SSU'}
             if ($Update.Title -like "*Adobe Flash Player*") {$UpdateGroup = 'AdobeSU'}
             if ($Update.Title -like "*Cumulative Update for Windows*") {$UpdateGroup = 'LCU'}
+            if ($Update.Title -like "*.NET Framework*") {$UpdateGroup = 'DotNet'}
             if ($Update.Title -like "*Cumulative Update for .NET*") {$UpdateGroup = 'DotNetCU'}
-
+            if ($Update.Title -like "*Feature Update*") {$UpdateGroup = ''}
             if ($Update.KnowledgeBaseArticles -eq '3173427') {$UpdateGroup = 'SSU'}
             if ($Update.KnowledgeBaseArticles -eq '3173428') {$UpdateGroup = 'SSU'}
+            #===================================================================================================
+            #   FileKBNumber
+            #===================================================================================================
+            $KBPattern = '(\d{4,7})'
+            $FileKBNumber = [regex]::matches($Update.Name, $KBPattern).Value
             #===================================================================================================
             #   Update Title (Remove Special Characters)
             #===================================================================================================
@@ -527,16 +592,34 @@ function New-OSDCatalog {
             $Update.Title = $Update.Title -replace ':',''
             $Update.Title = $Update.Title -replace ';',''
             $Update.Title = $Update.Title -replace '  ',''  #Double Space
+            $Update.Title = $Update.Title -replace '\(1607\)','1607'
+            $Update.Title = $Update.Title -replace '\(1703\)','1703'
+            $Update.Title = $Update.Title -replace '\(1709\)','1709'
+            $Update.Title = $Update.Title -replace '\(1803\)','1803'
+            $Update.Title = $Update.Title -replace '\(1809\)','1809'
+            $Update.Title = $Update.Title -replace '\(1903\)','1903'
+            $Update.Title = $Update.Title -replace '\(1909\)','1909'
+            $Update.Title = $Update.Title -replace '\(2004\)','2004'
+            $Update.Title = $Update.Title -replace '\(2009\)','2009'
+            $Update.Title = $Update.Title -replace '\(20H2\)','20H2'
+            #$Update.Title = $Update.Title -replace '20H1','2004'
+            #$Update.Title = $Update.Title -replace '20H2','2009'
 
-            if (!($UpdateGroup)) {if ($Update.Title -like "*.NET Framework*") {$UpdateGroup = 'DotNet'}}
             #$CategoryItem | Out-GridView
+            #$Update | Out-GridView
             #Return
+            $CatalogFileName = $CatalogName
+            $CatalogValue = $CatalogName
+            if ($CatalogValue -eq 'Windows 10 1903 and Later') {$CatalogValue = 'Windows 10'}
+            if ($CatalogValue -eq 'Windows Server 2019') {$CatalogValue = 'Windows Server 2019'}
+            
+            #Write-Verbose "Catalog File Name: $CatalogFileName.xml" -Verbose
             #===================================================================================================
             #   Create Object
             #===================================================================================================
             Write-Host "$($Update.Name) $($Update.LegacyName) " -ForegroundColor DarkGray
             $UpdateProperties = [PSCustomObject]@{
-                'Catalog' = $CatalogName;
+                'Catalog' = $CatalogValue;
                 'OSDVersion' = $OSDCatalogVersion;
                 'OSDStatus' = '';
                 'UpdateOS' = $UpdateOS;
@@ -546,6 +629,7 @@ function New-OSDCatalog {
             
                 'CreationDate' = [datetime]$CategoryItem.CreationDate;
                 'KBNumber' = [string]$CategoryItem.KnowledgeBaseArticles;
+                'FileKBNumber' = $FileKBNumber;
                 'Title' = $Update.Title;
                 'LegacyName' = $CategoryItem.LegacyName;
                 'Type' = $Update.Type;
@@ -589,14 +673,17 @@ function New-OSDCatalog {
             $AllUpdates += $UpdateProperties
         }
     }
-    $AllUpdates = $AllUpdates | Sort-Object OriginUri -Unique
+    #$AllUpdates = $AllUpdates | Sort-Object OriginUri -Unique
     $AllUpdates = $AllUpdates | Sort-Object CreationDate, KBNumber, Title
+    $AllUpdates = $AllUpdates | Sort-Object CreationDate -Descending
+    $AllUpdates = $AllUpdates | Sort-Object Title
+
     If ($GridViewResults) {
-        $AllUpdates = $AllUpdates | Sort-Object CreationDate | Out-GridView -PassThru -Title 'Select OSDCatalog Results'
+        $AllUpdates = $AllUpdates | Out-GridView -PassThru -Title 'Select OSDCatalog Results'
     }
     if ($SaveDirectory) {
-        $AllUpdates | Export-Clixml -Path "$SaveDirectory\$CatalogName.xml" -Force
-        Write-Verbose "Results: Import-CliXml '$SaveDirectory\$CatalogName.xml' | Out-GridView" -Verbose
+        $AllUpdates | Export-Clixml -Path "$SaveDirectory\$CatalogFileName.xml" -Force
+        Write-Verbose "Results: Import-CliXml '$SaveDirectory\$CatalogFileName.xml' | Out-GridView" -Verbose
     } else {
         Return $AllUpdates
     }
@@ -620,8 +707,8 @@ function Get-WsusUpdateFile {
             $Patch = $_
             Write-Verbose ("Adding NoteProperty for {0}" -f $_.Title)                    
             $_.GetInstallableItems() | ForEach {
-                $itemdata = $_ | Add-Member -MemberType NoteProperty -Name KnowledgeBaseArticles -value $patch.KnowledgeBaseArticles -PassThru
-                $itemdata | Add-Member -MemberType NoteProperty -Name Title -value $patch.Title -PassThru
+                $itemdata = $_ | Add-Member -MemberType NoteProperty -Name KnowledgeBaseArticles -value $Patch.KnowledgeBaseArticles -PassThru
+                $itemdata | Add-Member -MemberType NoteProperty -Name Title -value $Patch.Title -PassThru
             }
         }                
     }
