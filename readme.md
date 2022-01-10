@@ -31,5 +31,5 @@ New-OSDCatalog -SaveXML "C:\Catalogs\OSDUpdate Office 2016.xml"
 ```
 ### Create new Windows Server 2012 R2 catalog xml file.
 ```
-New-OSDCatalog -WsusServer wsus -SaveDirectory "C:\Catalogs\Windows Server 2012 R2\" -OSDeployCatalog "Windows Server 2012 R2"
+New-OSDCatalog -WsusServer wsus -SaveDirectory "C:\Catalogs\" -OSDeployCatalog "Windows Server 2012 R2"
 ```
