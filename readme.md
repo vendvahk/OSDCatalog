@@ -5,31 +5,15 @@ This is fork of deleted https://github.com/OSDeploy/OSDCatalog repo.
 
 ## OSDCatalog usage
 
-### View the RAW Windows 10 Updates without the links
+### Create Windows 10 catalog
 ```
-Get-OSDWSUSUpdate -WsusServer wsus -OSDCatalog "OSDBuild Windows 10" -GridView
+New-OSDCatalog -WsusServer wsus -SaveDirectory "C:\Catalogs\" -OSDeployCatalog "Windows 10"
 ```
-### View Office 2016 Category
-```
-Get-OSDWSUSUpdate -WsusServer wsus -Category "Office 2016" -GridView
-```
-### Pipe to New-OSDCatalog to get the URLs
-```
-Get-OSDWSUSUpdate -WsusServer wsus -OSDCatalog "OSDBuild Windows 10" | `
-New-OSDCatalog -SaveXML "C:\Catalogs\OSDBuild Windows 10.xml"
-```
-### Office Catalogs
-```
-Get-OSDWSUSUpdate -WsusServer wsus -OSDCatalog "OSDUpdate Office 2010" | `
-New-OSDCatalog -SaveXML "C:\Catalogs\OSDUpdate Office 2010.xml"
-
-Get-OSDWSUSUpdate -WsusServer wsus -OSDCatalog "OSDUpdate Office 2013" | `
-New-OSDCatalog -SaveXML "C:\Catalogs\OSDUpdate Office 2013.xml"
-
-Get-OSDWSUSUpdate -WsusServer wsus -OSDCatalog "OSDUpdate Office 2016" | `
-New-OSDCatalog -SaveXML "C:\Catalogs\OSDUpdate Office 2016.xml"
-```
-### Create new Windows Server 2012 R2 catalog xml file.
+### Create Windows Server 2012 R2 catalog
 ```
 New-OSDCatalog -WsusServer wsus -SaveDirectory "C:\Catalogs\" -OSDeployCatalog "Windows Server 2012 R2"
+```
+### Office 2016 Catalog
+```
+New-OSDCatalog -WsusServer wsus -SaveDirectory "C:\Catalogs\" -OSDeployCatalog "Office 2016"
 ```
