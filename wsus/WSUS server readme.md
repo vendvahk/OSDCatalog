@@ -1,6 +1,8 @@
 Source https://osdcatalog.osdeploy.com/docs/wsus
 
 # WSUS Server
+Very good guid to install WSUS https://www.prajwaldesai.com/install-configure-wsus-on-windows-server-2019/
+
 ## Server Virtual Machine
 For starters I have this running on a Virtual Machine.  WSUS is the only purpose of this Virtual Machine.  The Server Name is WSUS
 ## Update Source and Proxy Server
